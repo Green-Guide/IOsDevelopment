@@ -2,9 +2,7 @@
 //  AppDelegate.swift
 //  interface
 //
-//  Created by Ankita Vaid on 9/3/17.
-//  Copyright © 2017 Ankita Vaid. All rights reserved.
-//
+
 
 import UIKit
 
