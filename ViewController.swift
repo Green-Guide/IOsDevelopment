@@ -10,80 +10,42 @@ import CoreLocation
 //Test with actual device versus simulator to check on any 
 //performance changes
 
+//Load review information details into one tableviewcell
+
 //Baidu Maps Key: jGZyhLYClQ5VasDSrAtcGEvh4nUcIiAz
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
-    @IBOutlet weak var reviewNumber: UILabel!
-    @IBOutlet weak var backButton: UIButton!
-    @IBOutlet weak var forwardButton: UIButton!
+    @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var specificReview: UILabel!
+    @IBOutlet weak var companySearch: UITextField!
+    
+    struct reviewInfo {
+        static var reviewDetails = [[String:Any]]()
+    }
     
     let components = (address : "address",average : "avg_r", city : "city",
                       company : "company", lat : "lat", lng : "lng", numberOfReviews : "num_r")
-    var numberOfReviews = 8
+    var numberOfReviews = Int()
     var reviews = [[""],[""],[""],[""],[""],[""],[""],[""]]
-    
-    var currentReview = 1
+    var reviewIndex = [Int]()
     
     let reviewData = "http://www.lovegreenguide.com/map_point_app.php?lng=116.492394&lat=39.884462"
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        backButton.isEnabled = false
-        getData(index:currentReview - 1)
+        getData()
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
     
-    @IBAction func goBack(_ sender: UIButton) {
-        currentReview-=1
-        getData(index: currentReview - 1)
-        if(self.currentReview == self.numberOfReviews - 1) {
-            forwardButton.isEnabled = true
-        }
-        if(self.currentReview == 1) {
-            backButton.isEnabled = false
-        }
-    }
-    
-    @IBAction func goForward(_ sender: UIButton) {
-        currentReview+=1
-        getData(index: currentReview - 1)
-        if(self.currentReview > 1) {
-            backButton.isEnabled = true
-        }
-        if(self.currentReview == self.numberOfReviews) {
-            forwardButton.isEnabled = false
-        }
-    }
-    
-    func getData(index : Int) {
-//        if let url = URL(string : self.reviewData) {
-//            let session = URLSession.shared.dataTask(with : url, completionHandler : { (data, response,error) in
-//                if let data = data {
-//                    do {
-//                        var json = try JSONSerialization.jsonObject(with: data, options: []) as! [[String:Any]]
-//                        for i in 0...(json.count - 1) {
-//                            self.reviews[i] = [(json[i][self.components.address] as? String)!,
-//                                             (json[i][self.components.average] as? String)!,
-//                                             (json[i][self.components.city] as? String)!,
-//                                             (json[i][self.components.company] as? String)!,
-//                                             (json[i][self.components.lat] as? String)!,
-//                                             (json[i][self.components.lng] as? String)!]
-//                        }
-//                    }catch {
-//                        print(error)
-//                    }
-//                }
-//            })
-//            session.resume()
-//        }
+    public func getData() {
             let parameters = ["address": "address", "average":"average", "city":"city", "company": "company", "lat":"lat", "lng":"lng"]
             var lng = 0
             var lat = 0
-            guard let url = URL(string: "http://www.lovegreenguide.com/map_point_app.php?lng=116.492394&lat=39.884462")else { return }
+            guard let url = URL(string: reviewData)else { return }
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -99,12 +61,68 @@ class ViewController: UIViewController {
                 if let data = data {
                     do {
                         let json = try? JSONSerialization.jsonObject(with: data, options: [])
-                        print(json)
+                        reviewInfo.reviewDetails = [[:]]
+                        reviewInfo.reviewDetails = (json as? [[String:Any]])!
+                        var reviewAux = [[String:Any]]()
+                        for i in 0...reviewInfo.reviewDetails.count-1 {
+                            if(self.companySearch.text! != "") {
+                                if(reviewInfo.reviewDetails[i]["company"] as? String == self.companySearch.text) {
+                                    reviewAux.append(reviewInfo.reviewDetails[i])
+                                }
+                            }
+                        }
+                        if(reviewAux.count != 0) {
+                            reviewInfo.reviewDetails = reviewAux
+                        }
+                        DispatchQueue.main.async {
+                            self.tableView.reloadData()
+                        }
                     }catch {
                         print(error)
                     }
                 }
             }.resume()
         }
+    
+    public func tableView(_ tableView: UITableView, numberOfRowsInSection
+        section: Int) -> Int {
+        return reviewInfo.reviewDetails.count
+    }
+    
+    public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = UITableViewCell(style: UITableViewCellStyle.default, reuseIdentifier: "cell")
+        var address = " "
+        var average = " "
+        var city = " "
+        var company = " "
+        var lat = " "
+        var lng = " "
+        if(reviewInfo.reviewDetails[indexPath.row]["address"] != nil) {
+            address = reviewInfo.reviewDetails[indexPath.row]["address"] as! String
+        }
+        if(reviewInfo.reviewDetails[indexPath.row]["average"] != nil) {
+            average = reviewInfo.reviewDetails[indexPath.row]["average"] as! String
+        }
+        if(reviewInfo.reviewDetails[indexPath.row]["city"] != nil) {
+            city = reviewInfo.reviewDetails[indexPath.row]["city"] as! String
+        }
+        if(reviewInfo.reviewDetails[indexPath.row]["company"] != nil) {
+            company = reviewInfo.reviewDetails[indexPath.row]["company"] as! String
+        }
+        if(reviewInfo.reviewDetails[indexPath.row]["lat"] != nil) {
+            lat = reviewInfo.reviewDetails[indexPath.row]["lat"] as! String
+        }
+        if(reviewInfo.reviewDetails[indexPath.row]["lng"] != nil) {
+            lng = reviewInfo.reviewDetails[indexPath.row]["lng"] as! String
+        }
+        cell.textLabel?.text = "Review \(indexPath.row + 1) " + "\n" + address + "\n" + average + "\n" + city + "\n" + company + "\n" + lat + "\n" + lng
+        cell.textLabel?.numberOfLines = 0
+        return(cell)
+    }
+    
+    @IBAction func searchForCompany(_ sender: UIButton) {
+        self.specificReview.text = "Showing \(self.companySearch.text!) Reviews"
+        getData()
+    }
 }
 
