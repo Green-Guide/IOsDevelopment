@@ -1,24 +1,23 @@
 
-
 import Foundation
 import UIKit
 
-class signUp: UIViewController {
+class forgetPassword: UIViewController {
     
-    @IBOutlet var loginOptions: [UIButton]!
+    @IBOutlet weak var emailText: UITextField!
+    
+    @IBOutlet weak var formStatus: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.errorMessage.text = ""
+        self.formStatus.text = ""
     }
     
-    @IBOutlet weak var errorMessage: UILabel!
-    @IBOutlet weak var email: UITextField!
-    @IBOutlet weak var password: UITextField!
     
-    @IBAction func sendLoginInfo(_ sender: UIButton) {
-        let postString = "email=\(email.text!)&password=\(password.text!)&token_signup=06232017Job$"
-        var request = URLRequest(url: URL(string: "http://www.lovegreenguide.com/register_app.php")!)
+    @IBAction func emailResponse(_ sender: UIButton) {
+        let postString = "email=\(emailText.text!)&token_signup=06232017Job$"
+        let urlString = "http://www.lovegreenguide.com/getp_app.php"
+        var request = URLRequest(url: URL(string: urlString)!)
         request.httpMethod = "POST"
         request.httpBody = postString.data(using: .utf8)
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
@@ -34,12 +33,8 @@ class signUp: UIViewController {
             
             let responseString = String(data: data, encoding: .utf8)
             print("responseString = \(String(describing: responseString!))")
-            let responseMessage = String(describing: responseString!)
-            self.errorMessage.text! = responseMessage
-            print(self.errorMessage.text!)
+            self.formStatus.text = String(describing: responseString!)
         }
         task.resume()
     }
-    
-    
 }

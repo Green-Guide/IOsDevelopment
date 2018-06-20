@@ -24,6 +24,7 @@ class login: UIViewController {
     @IBOutlet weak var userLoginMessage: UILabel!
     
     var successReference = "\"Login successful! Welcome back.\""
+    
     var incorrectReference = "\"Incorrect user name and\\/or password.\""
     
     
@@ -58,17 +59,9 @@ class login: UIViewController {
                 print("response = \(String(describing: response))")
             }
             
-            var responseString = String(data: data, encoding: .utf8) {
-                didSet {
-                    self.userLoginMessage.text = String(describing: responseString!)
-                }
-            }
-            print("responseString = \(String(describing: responseString!))")
-//            var message = String(describing: responseString!) {
-//                didSet {
-//                    self.userLoginMessage.text = message
-//                }
-//            }
+            let responseString = String(data: data, encoding: .utf8)
+            self.userLoginMessage.text = String(describing: responseString!)
+            //print("responseString = \(String(describing: responseString!))")
             let message = String(describing: responseString!)
             if(message == self.successReference) {
                 self.moveToMain.isEnabled = true
